@@ -1,6 +1,0 @@
-projectKey=bookservice
-serverUrl=http://localhost:9000
-serverVersion=25.3.0.104237
-dashboardUrl=http://localhost:9000/dashboard?id=bookservice
-ceTaskId=a66e0f35-9394-4e09-bfaf-c4a69150b384
-ceTaskUrl=http://localhost:9000/api/ce/task?id=a66e0f35-9394-4e09-bfaf-c4a69150b384
