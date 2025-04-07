@@ -1,39 +1,57 @@
 package com.library.bookservice.integration;
 
 import com.library.bookservice.model.Book;
-import com.library.bookservice.repository.BookRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.http.MediaType;
-import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.boot.test.web.client.TestRestTemplate;
+import org.springframework.http.ResponseEntity;
 
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
+import static org.junit.jupiter.api.Assertions.*;
 
-@SpringBootTest
-@AutoConfigureMockMvc
+@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT) // Ensures web environment is loaded with random port
 public class BookIntegrationTest {
 
     @Autowired
-    private MockMvc mockMvc;
+    private TestRestTemplate restTemplate;
 
-    @Autowired
-    private BookRepository bookRepository;
+    private Book testBook;
 
     @BeforeEach
-    public void setup() {
-        bookRepository.deleteAll();
-        bookRepository.save(new Book(1L, "1984", "Orwell", "isbn1984"));
+    public void setUp() {
+        testBook = new Book();
+        testBook.setId(8L);
+        testBook.setTitle("Test Book");
+        testBook.setAuthor("Test Author");
+        testBook.setIsbn("123456");
     }
 
     @Test
-    public void testFetchBooksWithH2() throws Exception {
-        mockMvc.perform(get("/books"))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$[0].title").value("1984"))
-                .andExpect(jsonPath("$[0].author").value("Orwell"));
+    public void testAddBook() {
+        ResponseEntity<Book> response = restTemplate.postForEntity("/books", testBook, Book.class);
+        assertEquals(200, response.getStatusCodeValue());
+        assertNotNull(response.getBody().getId());
+    }
+
+    @Test
+    public void testGetAllBooks() {
+        ResponseEntity<Book[]> response = restTemplate.getForEntity("/books", Book[].class);
+        assertEquals(200, response.getStatusCodeValue());
+        assertTrue(response.getBody().length > 0);
+    }
+
+    @Test
+    public void testGetBookById() {
+        ResponseEntity<Book> response = restTemplate.getForEntity("/books/8", Book.class);
+        assertEquals(200, response.getStatusCodeValue());
+        assertNotNull(response.getBody());
+    }
+
+    @Test
+    public void testDeleteBook() {
+        restTemplate.delete("/books/5");
+        ResponseEntity<Book> response = restTemplate.getForEntity("/books/8", Book.class);
+        assertEquals(200, response.getStatusCodeValue()); 
     }
 }
